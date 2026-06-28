@@ -314,6 +314,55 @@ func constantWrite(b bool, p *bool) {
 	}
 }
 
+// Verify that conditional OR into an accumulator is lowered
+// to branchless NEG+AND+OR (phiopt Phi+Or rewrite).
+
+func phiOrConst8(a bool, t uint8) uint8 {
+	if a {
+		t |= 0x0F
+	}
+	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
+	return t
+}
+
+func phiOrConst64(a bool, t uint64) uint64 {
+	if a {
+		t |= 0xFFFFFFFF
+	}
+	// amd64:"NEGQ" "ORQ" -"CMOV"
+	return t
+}
+
+func phiOrBoolAccum(a, b, c bool) uint32 {
+	var t uint32
+	if a {
+		t |= 1
+	}
+	if b {
+		t |= 2
+	}
+	if c {
+		t |= 4
+	}
+	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
+	return t
+}
+
+func phiOrIntCond(x, y, z int) uint32 {
+	var t uint32
+	if x > 0 {
+		t |= 1
+	}
+	if y > 0 {
+		t |= 2
+	}
+	if z > 0 {
+		t |= 4
+	}
+	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
+	return t
+}
+
 func boolCompare1(p, q *bool) int {
 	// arm64:-"EOR [$]1"
 	if *p == *q {
