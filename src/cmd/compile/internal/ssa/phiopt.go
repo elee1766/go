@@ -4,8 +4,6 @@
 
 package ssa
 
-import "cmd/compile/internal/types"
-
 // phiopt eliminates boolean Phis based on the previous if.
 //
 // Main use case is to transform:
@@ -298,15 +296,7 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 		trueVal := v.Args[reverse]    // value when cond is true
 		falseVal := v.Args[1-reverse] // value when cond is false (the unchanged x)
 
-		if isOrConst(trueVal, falseVal) {
-			// trueVal = Or(falseVal, const)
-			var cv *Value
-			if trueVal.Args[0] == falseVal {
-				cv = trueVal.Args[1]
-			} else {
-				cv = trueVal.Args[0]
-			}
-
+		if cv := isOrConst(trueVal, falseVal); cv != nil {
 			f := b0.Func
 			typ := f.Config.Types
 			cond := b0.Controls[0]
@@ -328,13 +318,46 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 			}
 
 			// Neg: 0 → 0x0000, 1 → 0xFFFF
-			neg := v.Block.NewValue1(v.Pos, negOps.forSize(v.Type), v.Type, ext)
+			var negOp Op
+			switch v.Type.Size() {
+			case 1:
+				negOp = OpNeg8
+			case 2:
+				negOp = OpNeg16
+			case 4:
+				negOp = OpNeg32
+			case 8:
+				negOp = OpNeg64
+			}
+			neg := v.Block.NewValue1(v.Pos, negOp, v.Type, ext)
 
 			// And with constant: 0 or c
-			masked := v.Block.NewValue2(v.Pos, andOps.forSize(v.Type), v.Type, neg, cv)
+			var andOp Op
+			switch v.Type.Size() {
+			case 1:
+				andOp = OpAnd8
+			case 2:
+				andOp = OpAnd16
+			case 4:
+				andOp = OpAnd32
+			case 8:
+				andOp = OpAnd64
+			}
+			masked := v.Block.NewValue2(v.Pos, andOp, v.Type, neg, cv)
 
 			// Or into accumulator
-			v.reset(orOps.forSize(v.Type))
+			var orOp Op
+			switch v.Type.Size() {
+			case 1:
+				orOp = OpOr8
+			case 2:
+				orOp = OpOr16
+			case 4:
+				orOp = OpOr32
+			case 8:
+				orOp = OpOr64
+			}
+			v.reset(orOp)
 			v.AddArg2(falseVal, masked)
 
 			if f.pass.debug > 0 {
@@ -395,16 +418,17 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 	}
 }
 
-// isOrConst reports whether trueVal is Or(falseVal, const) or Or(const, falseVal).
-func isOrConst(trueVal, falseVal *Value) bool {
+// isOrConst checks whether trueVal is Or(falseVal, const) or Or(const, falseVal).
+// If so it returns the constant arg; otherwise it returns nil.
+func isOrConst(trueVal, falseVal *Value) *Value {
 	switch trueVal.Op {
 	case OpOr8, OpOr16, OpOr32, OpOr64:
 	default:
-		return false
+		return nil
 	}
 	a, b := trueVal.Args[0], trueVal.Args[1]
 	if a != falseVal && b != falseVal {
-		return false
+		return nil
 	}
 	cv := b
 	if b == falseVal {
@@ -412,32 +436,9 @@ func isOrConst(trueVal, falseVal *Value) bool {
 	}
 	switch cv.Op {
 	case OpConst8, OpConst16, OpConst32, OpConst64:
-		return true
+		return cv
 	}
-	return false
-}
-
-// intOps holds the four width-specific variants of an integer op.
-type intOps struct {
-	op8, op16, op32, op64 Op
-}
-
-var negOps = intOps{OpNeg8, OpNeg16, OpNeg32, OpNeg64}
-var andOps = intOps{OpAnd8, OpAnd16, OpAnd32, OpAnd64}
-var orOps = intOps{OpOr8, OpOr16, OpOr32, OpOr64}
-
-func (ops intOps) forSize(t *types.Type) Op {
-	switch t.Size() {
-	case 1:
-		return ops.op8
-	case 2:
-		return ops.op16
-	case 4:
-		return ops.op32
-	case 8:
-		return ops.op64
-	}
-	panic("bad size")
+	return nil
 }
 
 // b is the If block giving the boolean value.
