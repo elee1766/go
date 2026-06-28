@@ -289,19 +289,19 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 	a0 := v.Args[0]
 	a1 := v.Args[1]
 
-	// Match Phi(x, Or(x, c)) or Phi(Or(x, c), x)
-	// where c is any integer constant.
-	// Rewrite to: Or(x, And(Neg(ZeroExt(CvtBoolToUint8(cond))), c))
+	// Replaces
+	//   if cond { x = x | c } with x = x | ((-bool2int(cond)) & c)
+	// where c is an integer constant.
 	{
-		trueVal := v.Args[reverse]    // value when cond is true
-		falseVal := v.Args[1-reverse] // value when cond is false (the unchanged x)
+		trueVal := v.Args[reverse]
+		falseVal := v.Args[1-reverse]
 
 		if cv := isOrConst(trueVal, falseVal); cv != nil {
 			f := b0.Func
 			typ := f.Config.Types
 			cond := b0.Controls[0]
 
-			// bool → uint8 → widen to result type
+			// Widen bool to result type.
 			cvt := v.Block.NewValue1(v.Pos, OpCvtBoolToUint8, typ.UInt8, cond)
 			var ext *Value
 			switch v.Type.Size() {
@@ -317,7 +317,7 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 				goto noMatch
 			}
 
-			// Neg: 0 → 0x0000, 1 → 0xFFFF
+			// Negate to produce mask: 0 → 0x0000, 1 → 0xFFFF.
 			var negOp Op
 			switch v.Type.Size() {
 			case 1:
@@ -331,7 +331,7 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 			}
 			neg := v.Block.NewValue1(v.Pos, negOp, v.Type, ext)
 
-			// And with constant: 0 or c
+			// Mask the constant.
 			var andOp Op
 			switch v.Type.Size() {
 			case 1:
@@ -345,7 +345,7 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 			}
 			masked := v.Block.NewValue2(v.Pos, andOp, v.Type, neg, cv)
 
-			// Or into accumulator
+			// Or into accumulator.
 			var orOp Op
 			switch v.Type.Size() {
 			case 1:
@@ -418,8 +418,7 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 	}
 }
 
-// isOrConst checks whether trueVal is Or(falseVal, const) or Or(const, falseVal).
-// If so it returns the constant arg; otherwise it returns nil.
+// isOrConst reports whether trueVal is Or(falseVal, c) returning c, or nil if no match.
 func isOrConst(trueVal, falseVal *Value) *Value {
 	switch trueVal.Op {
 	case OpOr8, OpOr16, OpOr32, OpOr64:
