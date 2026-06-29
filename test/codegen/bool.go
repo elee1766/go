@@ -341,15 +341,6 @@ func condSelAddConst(a bool, t uint32) uint32 {
 	return t
 }
 
-func condSelConstAssign(a bool) uint32 {
-	var t uint32
-	if a {
-		t = 0xFF
-	}
-	// amd64:-"CMOV"
-	return t
-}
-
 func condSelIntCond(x, y, z int) uint32 {
 	var t uint32
 	if x > 0 {
