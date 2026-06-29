@@ -288,76 +288,6 @@ func phiopt(f *Func) {
 func phioptint(v *Value, b0 *Block, reverse int) {
 	a0 := v.Args[0]
 	a1 := v.Args[1]
-
-	// Replaces
-	//   if cond { x = x op c } with x = x op ((-bool2int(cond)) & c)
-	// where op is Or, Xor, or Add and c is an integer constant.
-	// This works because op(x, 0) = x for all three ops.
-	{
-		trueVal := v.Args[reverse]
-		falseVal := v.Args[1-reverse]
-
-		if cv := isZeroIdentityOpConst(trueVal, falseVal); cv != nil {
-			f := b0.Func
-			typ := f.Config.Types
-			cond := b0.Controls[0]
-
-			// Widen bool to result type.
-			cvt := v.Block.NewValue1(v.Pos, OpCvtBoolToUint8, typ.UInt8, cond)
-			var ext *Value
-			switch v.Type.Size() {
-			case 1:
-				ext = cvt
-			case 2:
-				ext = v.Block.NewValue1(v.Pos, OpZeroExt8to16, v.Type, cvt)
-			case 4:
-				ext = v.Block.NewValue1(v.Pos, OpZeroExt8to32, v.Type, cvt)
-			case 8:
-				ext = v.Block.NewValue1(v.Pos, OpZeroExt8to64, v.Type, cvt)
-			default:
-				goto noMatch
-			}
-
-			// Negate to produce mask: 0 → 0x0000, 1 → 0xFFFF.
-			var negOp Op
-			switch v.Type.Size() {
-			case 1:
-				negOp = OpNeg8
-			case 2:
-				negOp = OpNeg16
-			case 4:
-				negOp = OpNeg32
-			case 8:
-				negOp = OpNeg64
-			}
-			neg := v.Block.NewValue1(v.Pos, negOp, v.Type, ext)
-
-			// Mask the constant.
-			var andOp Op
-			switch v.Type.Size() {
-			case 1:
-				andOp = OpAnd8
-			case 2:
-				andOp = OpAnd16
-			case 4:
-				andOp = OpAnd32
-			case 8:
-				andOp = OpAnd64
-			}
-			masked := v.Block.NewValue2(v.Pos, andOp, v.Type, neg, cv)
-
-			// Combine with accumulator using the original op.
-			v.reset(trueVal.Op)
-			v.AddArg2(falseVal, masked)
-
-			if f.pass.debug > 0 {
-				f.Warnl(v.Block.Pos, "converted Phi+%v to branchless %v", trueVal.Op, trueVal.Op)
-			}
-			return
-		}
-	noMatch:
-	}
-
 	if a0.Op != a1.Op {
 		return
 	}
@@ -368,82 +298,12 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 		return
 	}
 
-	// Replaces
-	//   if cond { x = 1 } else { x = 0 } with x = ZeroExt(bool2int(cond))
-	// and
-	//   if cond { x = 0 } else { x = 1 } with x = ZeroExt(bool2int(!cond))
 	negate := false
 	switch {
 	case a0.AuxInt == 0 && a1.AuxInt == 1:
 		negate = true
 	case a0.AuxInt == 1 && a1.AuxInt == 0:
 	default:
-		// Replaces
-		//   if cond { x = c } else { x = 0 } with x = (-bool2int(cond)) & c
-		var cv *Value
-		switch {
-		case v.Args[reverse].AuxInt != 0 && v.Args[1-reverse].AuxInt == 0:
-			cv = v.Args[reverse]
-		case v.Args[reverse].AuxInt == 0 && v.Args[1-reverse].AuxInt != 0:
-			cv = v.Args[1-reverse]
-		default:
-			return
-		}
-
-		f := b0.Func
-		typ := f.Config.Types
-		cond := b0.Controls[0]
-
-		// If the non-zero value is on the false branch, negate the condition.
-		if cv == v.Args[1-reverse] {
-			cond = v.Block.NewValue1(v.Pos, OpNot, cond.Type, cond)
-		}
-
-		cvt := v.Block.NewValue1(v.Pos, OpCvtBoolToUint8, typ.UInt8, cond)
-		var ext *Value
-		switch v.Type.Size() {
-		case 1:
-			ext = cvt
-		case 2:
-			ext = v.Block.NewValue1(v.Pos, OpZeroExt8to16, v.Type, cvt)
-		case 4:
-			ext = v.Block.NewValue1(v.Pos, OpZeroExt8to32, v.Type, cvt)
-		case 8:
-			ext = v.Block.NewValue1(v.Pos, OpZeroExt8to64, v.Type, cvt)
-		default:
-			v.Fatalf("bad int size %d", v.Type.Size())
-		}
-
-		var negOp Op
-		switch v.Type.Size() {
-		case 1:
-			negOp = OpNeg8
-		case 2:
-			negOp = OpNeg16
-		case 4:
-			negOp = OpNeg32
-		case 8:
-			negOp = OpNeg64
-		}
-		neg := v.Block.NewValue1(v.Pos, negOp, v.Type, ext)
-
-		var andOp Op
-		switch v.Type.Size() {
-		case 1:
-			andOp = OpAnd8
-		case 2:
-			andOp = OpAnd16
-		case 4:
-			andOp = OpAnd32
-		case 8:
-			andOp = OpAnd64
-		}
-		v.reset(andOp)
-		v.AddArg2(neg, cv)
-
-		if f.pass.debug > 0 {
-			f.Warnl(v.Block.Pos, "converted OpPhi to branchless const")
-		}
 		return
 	}
 
@@ -476,31 +336,6 @@ func phioptint(v *Value, b0 *Block, reverse int) {
 	if f.pass.debug > 0 {
 		f.Warnl(v.Block.Pos, "converted OpPhi bool -> int%d", v.Type.Size()*8)
 	}
-}
-
-// isZeroIdentityOpConst reports whether trueVal is Op(falseVal, c) where Op has
-// zero as its identity element (Or, Xor, Add), returning c or nil if no match.
-func isZeroIdentityOpConst(trueVal, falseVal *Value) *Value {
-	switch trueVal.Op {
-	case OpOr8, OpOr16, OpOr32, OpOr64,
-		OpXor8, OpXor16, OpXor32, OpXor64,
-		OpAdd8, OpAdd16, OpAdd32, OpAdd64:
-	default:
-		return nil
-	}
-	a, b := trueVal.Args[0], trueVal.Args[1]
-	if a != falseVal && b != falseVal {
-		return nil
-	}
-	cv := b
-	if b == falseVal {
-		cv = a
-	}
-	switch cv.Op {
-	case OpConst8, OpConst16, OpConst32, OpConst64:
-		return cv
-	}
-	return nil
 }
 
 // b is the If block giving the boolean value.

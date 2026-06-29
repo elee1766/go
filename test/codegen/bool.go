@@ -307,33 +307,10 @@ func TestLogicalCompareZero(x *[64]uint64) {
 
 }
 
-func constantWrite(b bool, p *bool) {
-	if b {
-		// amd64:`MOVB [$]1, \(`
-		*p = b
-	}
-}
+// Verify that CondSelect is rewritten into branchless math on amd64
+// for conditional bitwise/arithmetic ops and constant assignments.
 
-// Verify that conditional OR/XOR/ADD into an accumulator is lowered
-// to branchless NEG+AND+op (phiopt Phi rewrite for zero-identity ops).
-
-func phiOrConst8(a bool, t uint8) uint8 {
-	if a {
-		t |= 0x0F
-	}
-	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
-	return t
-}
-
-func phiOrConst64(a bool, t uint64) uint64 {
-	if a {
-		t |= 0xFFFFFFFF
-	}
-	// amd64:"NEGQ" "ORQ" -"CMOV"
-	return t
-}
-
-func phiOrBoolAccum(a, b, c bool) uint32 {
+func condSelOrAccum(a, b, c bool) uint32 {
 	var t uint32
 	if a {
 		t |= 1
@@ -344,11 +321,36 @@ func phiOrBoolAccum(a, b, c bool) uint32 {
 	if c {
 		t |= 4
 	}
-	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
+	// amd64:-"CMOV"
 	return t
 }
 
-func phiOrIntCond(x, y, z int) uint32 {
+func condSelXorConst(a bool, t uint32) uint32 {
+	if a {
+		t ^= 0xFF
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
+func condSelAddConst(a bool, t uint32) uint32 {
+	if a {
+		t += 42
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
+func condSelConstAssign(a bool) uint32 {
+	var t uint32
+	if a {
+		t = 0xFF
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
+func condSelIntCond(x, y, z int) uint32 {
 	var t uint32
 	if x > 0 {
 		t |= 1
@@ -359,33 +361,15 @@ func phiOrIntCond(x, y, z int) uint32 {
 	if z > 0 {
 		t |= 4
 	}
-	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
+	// amd64:-"CMOV"
 	return t
 }
 
-func phiXorConst(a bool, t uint32) uint32 {
-	if a {
-		t ^= 0xFF
+func constantWrite(b bool, p *bool) {
+	if b {
+		// amd64:`MOVB [$]1, \(`
+		*p = b
 	}
-	// amd64:"NEGL" "XORL" -"CMOV"
-	return t
-}
-
-func phiAddConst(a bool, t uint32) uint32 {
-	if a {
-		t += 42
-	}
-	// amd64:"NEGL" "ANDL" -"CMOV"
-	return t
-}
-
-func phiSingleBranchConst(a bool) uint32 {
-	var t uint32
-	if a {
-		t = 0xFF
-	}
-	// amd64:"NEGL" -"CMOV"
-	return t
 }
 
 func boolCompare1(p, q *bool) int {

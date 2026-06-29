@@ -2320,6 +2320,12 @@
 => (StaticLECall {f} [argsize] dict_ (StringMake <typ.String> ptr len) mem)
 
 // Transform some CondSelect into math operations.
+// if b { x = c } else { x = 0 } => x = b * c
+(CondSelect c:(Const8)          (Const8          [0]) bool) => (Mul8       <c.Type> c (CvtBoolToUint8 <c.Type> bool))
+(CondSelect c:(Const(64|32|16)) (Const(64|32|16) [0]) bool) => (Mul(64|32|16) <c.Type> c (ZeroExt8to(64|32|16) <c.Type> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))
+// if !b { x = c } else { x = 0 } => x = !b * c
+(CondSelect (Const8          [0]) c:(Const8)          bool) => (Mul8       <c.Type> c (CvtBoolToUint8 <c.Type> (Not <bool.Type> bool)))
+(CondSelect (Const(64|32|16) [0]) c:(Const(64|32|16)) bool) => (Mul(64|32|16) <c.Type> c (ZeroExt8to(64|32|16) <c.Type> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))
 // if b { x += c } => x += b * c
 (CondSelect op:(Add8 <t> x c:(Const8)) x bool) &&
 	rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) =>
