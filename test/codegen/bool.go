@@ -314,8 +314,8 @@ func constantWrite(b bool, p *bool) {
 	}
 }
 
-// Verify that conditional OR into an accumulator is lowered
-// to branchless NEG+AND+OR (phiopt Phi+Or rewrite).
+// Verify that conditional OR/XOR/ADD into an accumulator is lowered
+// to branchless NEG+AND+op (phiopt Phi rewrite for zero-identity ops).
 
 func phiOrConst8(a bool, t uint8) uint8 {
 	if a {
@@ -360,6 +360,31 @@ func phiOrIntCond(x, y, z int) uint32 {
 		t |= 4
 	}
 	// amd64:"NEGL" "ANDL" "ORL" -"CMOV"
+	return t
+}
+
+func phiXorConst(a bool, t uint32) uint32 {
+	if a {
+		t ^= 0xFF
+	}
+	// amd64:"NEGL" "XORL" -"CMOV"
+	return t
+}
+
+func phiAddConst(a bool, t uint32) uint32 {
+	if a {
+		t += 42
+	}
+	// amd64:"NEGL" "ANDL" -"CMOV"
+	return t
+}
+
+func phiSingleBranchConst(a bool) uint32 {
+	var t uint32
+	if a {
+		t = 0xFF
+	}
+	// amd64:"NEGL" -"CMOV"
 	return t
 }
 
