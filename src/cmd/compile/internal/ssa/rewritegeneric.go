@@ -6660,6 +6660,310 @@ func rewriteValuegeneric_OpCondSelect(v *Value) bool {
 		}
 		break
 	}
+	// match: (CondSelect op:(Add8 <t> x c:(Const8)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add8 x (And8 <t> c (Neg8 <t> (CvtBoolToUint8 <t> bool))))
+	for {
+		op := v_0
+		if op.Op != OpAdd8 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst8 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd8)
+			v0 := b.NewValue0(v.Pos, OpAnd8, t)
+			v1 := b.NewValue0(v.Pos, OpNeg8, t)
+			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, t)
+			v2.AddArg(bool)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Add64 <t> x c:(Const64)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add64 x (And64 <t> c (Neg64 <t> (ZeroExt8to64 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpAdd64 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst64 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd64)
+			v0 := b.NewValue0(v.Pos, OpAnd64, t)
+			v1 := b.NewValue0(v.Pos, OpNeg64, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to64, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Add32 <t> x c:(Const32)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add32 x (And32 <t> c (Neg32 <t> (ZeroExt8to32 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpAdd32 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst32 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd32)
+			v0 := b.NewValue0(v.Pos, OpAnd32, t)
+			v1 := b.NewValue0(v.Pos, OpNeg32, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to32, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Add16 <t> x c:(Const16)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add16 x (And16 <t> c (Neg16 <t> (ZeroExt8to16 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpAdd16 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst16 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd16)
+			v0 := b.NewValue0(v.Pos, OpAnd16, t)
+			v1 := b.NewValue0(v.Pos, OpNeg16, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to16, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Add8 <t> x c:(Const8)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add8 x (And8 <t> c (Neg8 <t> (CvtBoolToUint8 <t> (Not <bool.Type> bool)))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpAdd8 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst8 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd8)
+			v0 := b.NewValue0(v.Pos, OpAnd8, t)
+			v1 := b.NewValue0(v.Pos, OpNeg8, t)
+			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, t)
+			v3 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Add64 <t> x c:(Const64)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add64 x (And64 <t> c (Neg64 <t> (ZeroExt8to64 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpAdd64 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst64 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd64)
+			v0 := b.NewValue0(v.Pos, OpAnd64, t)
+			v1 := b.NewValue0(v.Pos, OpNeg64, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to64, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Add32 <t> x c:(Const32)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add32 x (And32 <t> c (Neg32 <t> (ZeroExt8to32 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpAdd32 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst32 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd32)
+			v0 := b.NewValue0(v.Pos, OpAnd32, t)
+			v1 := b.NewValue0(v.Pos, OpNeg32, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to32, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Add16 <t> x c:(Const16)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)
+	// result: (Add16 x (And16 <t> c (Neg16 <t> (ZeroExt8to16 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpAdd16 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst16 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt) && !rewriteCondSelectIntoMath(config, addToSub(op.Op), -c.AuxInt)) {
+				continue
+			}
+			v.reset(OpAdd16)
+			v0 := b.NewValue0(v.Pos, OpAnd16, t)
+			v1 := b.NewValue0(v.Pos, OpNeg16, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to16, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
 	// match: (CondSelect (Lsh64x64 x (Const64 [1])) x bool)
 	// result: (Lsh64x8 [true] x (CvtBoolToUint8 <types.Types[types.TUINT8]> bool))
 	for {
@@ -7488,6 +7792,310 @@ func rewriteValuegeneric_OpCondSelect(v *Value) bool {
 		}
 		break
 	}
+	// match: (CondSelect op:(Or8 <t> x c:(Const8)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or8 x (And8 <t> c (Neg8 <t> (CvtBoolToUint8 <t> bool))))
+	for {
+		op := v_0
+		if op.Op != OpOr8 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst8 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr8)
+			v0 := b.NewValue0(v.Pos, OpAnd8, t)
+			v1 := b.NewValue0(v.Pos, OpNeg8, t)
+			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, t)
+			v2.AddArg(bool)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Or64 <t> x c:(Const64)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or64 x (And64 <t> c (Neg64 <t> (ZeroExt8to64 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpOr64 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst64 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr64)
+			v0 := b.NewValue0(v.Pos, OpAnd64, t)
+			v1 := b.NewValue0(v.Pos, OpNeg64, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to64, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Or32 <t> x c:(Const32)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or32 x (And32 <t> c (Neg32 <t> (ZeroExt8to32 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpOr32 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst32 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr32)
+			v0 := b.NewValue0(v.Pos, OpAnd32, t)
+			v1 := b.NewValue0(v.Pos, OpNeg32, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to32, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Or16 <t> x c:(Const16)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or16 x (And16 <t> c (Neg16 <t> (ZeroExt8to16 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpOr16 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst16 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr16)
+			v0 := b.NewValue0(v.Pos, OpAnd16, t)
+			v1 := b.NewValue0(v.Pos, OpNeg16, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to16, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Or8 <t> x c:(Const8)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or8 x (And8 <t> c (Neg8 <t> (CvtBoolToUint8 <t> (Not <bool.Type> bool)))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpOr8 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst8 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr8)
+			v0 := b.NewValue0(v.Pos, OpAnd8, t)
+			v1 := b.NewValue0(v.Pos, OpNeg8, t)
+			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, t)
+			v3 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Or64 <t> x c:(Const64)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or64 x (And64 <t> c (Neg64 <t> (ZeroExt8to64 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpOr64 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst64 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr64)
+			v0 := b.NewValue0(v.Pos, OpAnd64, t)
+			v1 := b.NewValue0(v.Pos, OpNeg64, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to64, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Or32 <t> x c:(Const32)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or32 x (And32 <t> c (Neg32 <t> (ZeroExt8to32 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpOr32 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst32 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr32)
+			v0 := b.NewValue0(v.Pos, OpAnd32, t)
+			v1 := b.NewValue0(v.Pos, OpNeg32, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to32, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Or16 <t> x c:(Const16)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Or16 x (And16 <t> c (Neg16 <t> (ZeroExt8to16 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpOr16 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst16 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpOr16)
+			v0 := b.NewValue0(v.Pos, OpAnd16, t)
+			v1 := b.NewValue0(v.Pos, OpNeg16, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to16, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
 	// match: (CondSelect op:(Xor8 <t> x c:(Const8)) x bool)
 	// cond: rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
 	// result: (Xor8 x (Mul8 <t> c (CvtBoolToUint8 <t> bool)))
@@ -7768,6 +8376,310 @@ func rewriteValuegeneric_OpCondSelect(v *Value) bool {
 			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
 			v3 := b.NewValue0(v.Pos, OpNot, bool.Type)
 			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Xor8 <t> x c:(Const8)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor8 x (And8 <t> c (Neg8 <t> (CvtBoolToUint8 <t> bool))))
+	for {
+		op := v_0
+		if op.Op != OpXor8 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst8 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor8)
+			v0 := b.NewValue0(v.Pos, OpAnd8, t)
+			v1 := b.NewValue0(v.Pos, OpNeg8, t)
+			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, t)
+			v2.AddArg(bool)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Xor64 <t> x c:(Const64)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor64 x (And64 <t> c (Neg64 <t> (ZeroExt8to64 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpXor64 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst64 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor64)
+			v0 := b.NewValue0(v.Pos, OpAnd64, t)
+			v1 := b.NewValue0(v.Pos, OpNeg64, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to64, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Xor32 <t> x c:(Const32)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor32 x (And32 <t> c (Neg32 <t> (ZeroExt8to32 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpXor32 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst32 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor32)
+			v0 := b.NewValue0(v.Pos, OpAnd32, t)
+			v1 := b.NewValue0(v.Pos, OpNeg32, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to32, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect op:(Xor16 <t> x c:(Const16)) x bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor16 x (And16 <t> c (Neg16 <t> (ZeroExt8to16 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> bool)))))
+	for {
+		op := v_0
+		if op.Op != OpXor16 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			x := op_0
+			c := op_1
+			if c.Op != OpConst16 || x != v_1 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor16)
+			v0 := b.NewValue0(v.Pos, OpAnd16, t)
+			v1 := b.NewValue0(v.Pos, OpNeg16, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to16, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Xor8 <t> x c:(Const8)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor8 x (And8 <t> c (Neg8 <t> (CvtBoolToUint8 <t> (Not <bool.Type> bool)))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpXor8 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst8 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor8)
+			v0 := b.NewValue0(v.Pos, OpAnd8, t)
+			v1 := b.NewValue0(v.Pos, OpNeg8, t)
+			v2 := b.NewValue0(v.Pos, OpCvtBoolToUint8, t)
+			v3 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v3.AddArg(bool)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Xor64 <t> x c:(Const64)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor64 x (And64 <t> c (Neg64 <t> (ZeroExt8to64 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpXor64 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst64 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor64)
+			v0 := b.NewValue0(v.Pos, OpAnd64, t)
+			v1 := b.NewValue0(v.Pos, OpNeg64, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to64, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Xor32 <t> x c:(Const32)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor32 x (And32 <t> c (Neg32 <t> (ZeroExt8to32 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpXor32 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst32 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor32)
+			v0 := b.NewValue0(v.Pos, OpAnd32, t)
+			v1 := b.NewValue0(v.Pos, OpNeg32, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to32, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
+			v2.AddArg(v3)
+			v1.AddArg(v2)
+			v0.AddArg2(c, v1)
+			v.AddArg2(x, v0)
+			return true
+		}
+		break
+	}
+	// match: (CondSelect x op:(Xor16 <t> x c:(Const16)) bool)
+	// cond: !rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)
+	// result: (Xor16 x (And16 <t> c (Neg16 <t> (ZeroExt8to16 <t> (CvtBoolToUint8 <types.Types[types.TUINT8]> (Not <bool.Type> bool))))))
+	for {
+		x := v_0
+		op := v_1
+		if op.Op != OpXor16 {
+			break
+		}
+		t := op.Type
+		_ = op.Args[1]
+		op_0 := op.Args[0]
+		op_1 := op.Args[1]
+		for _i0 := 0; _i0 <= 1; _i0, op_0, op_1 = _i0+1, op_1, op_0 {
+			if x != op_0 {
+				continue
+			}
+			c := op_1
+			if c.Op != OpConst16 {
+				continue
+			}
+			bool := v_2
+			if !(!rewriteCondSelectIntoMath(config, op.Op, c.AuxInt)) {
+				continue
+			}
+			v.reset(OpXor16)
+			v0 := b.NewValue0(v.Pos, OpAnd16, t)
+			v1 := b.NewValue0(v.Pos, OpNeg16, t)
+			v2 := b.NewValue0(v.Pos, OpZeroExt8to16, t)
+			v3 := b.NewValue0(v.Pos, OpCvtBoolToUint8, types.Types[types.TUINT8])
+			v4 := b.NewValue0(v.Pos, OpNot, bool.Type)
+			v4.AddArg(bool)
+			v3.AddArg(v4)
 			v2.AddArg(v3)
 			v1.AddArg(v2)
 			v0.AddArg2(c, v1)

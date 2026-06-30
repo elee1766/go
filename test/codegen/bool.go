@@ -307,6 +307,55 @@ func TestLogicalCompareZero(x *[64]uint64) {
 
 }
 
+// Verify that CondSelect is rewritten into branchless math on amd64
+// for conditional bitwise/arithmetic ops and constant assignments.
+
+func condSelOrAccum(a, b, c bool) uint32 {
+	var t uint32
+	if a {
+		t |= 1
+	}
+	if b {
+		t |= 2
+	}
+	if c {
+		t |= 4
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
+func condSelXorConst(a bool, t uint32) uint32 {
+	if a {
+		t ^= 0xFF
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
+func condSelAddConst(a bool, t uint32) uint32 {
+	if a {
+		t += 42
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
+func condSelIntCond(x, y, z int) uint32 {
+	var t uint32
+	if x > 0 {
+		t |= 1
+	}
+	if y > 0 {
+		t |= 2
+	}
+	if z > 0 {
+		t |= 4
+	}
+	// amd64:-"CMOV"
+	return t
+}
+
 func constantWrite(b bool, p *bool) {
 	if b {
 		// amd64:`MOVB [$]1, \(`
