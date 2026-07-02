@@ -4,6 +4,81 @@
 
 package ssa
 
+import (
+	"fmt"
+	"os"
+	"sync"
+)
+
+var pow2Log struct {
+	f    *os.File
+	once sync.Once
+}
+
+func getPow2Log() *os.File {
+	pow2Log.once.Do(func() {
+		if path := os.Getenv("POW2_PHI_LOG"); path != "" {
+			f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err == nil {
+				pow2Log.f = f
+			}
+		}
+	})
+	return pow2Log.f
+}
+
+// condDependsOnAccum reports whether cond directly uses accum within
+// 2 hops through non-memory args. This detects the pattern:
+//
+//	if v&bit { v |= otherbit }
+//
+// where cond = Neq(And(v, const), 0) has v at depth 2.
+func condDependsOnAccum(cond, accum *Value) bool {
+	for _, a := range cond.Args {
+		if a.Type.IsMemory() {
+			continue
+		}
+		if a == accum {
+			return true
+		}
+		for _, b := range a.Args {
+			if b.Type.IsMemory() {
+				continue
+			}
+			if b == accum {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isOrXorPow2 reports whether trueVal is Or(falseVal, c) or Xor(falseVal, c)
+// where c is a power-of-2 integer constant, returning c or nil if no match.
+func isOrXorPow2(trueVal, falseVal *Value) *Value {
+	switch trueVal.Op {
+	case OpOr8, OpOr16, OpOr32, OpOr64,
+		OpXor8, OpXor16, OpXor32, OpXor64:
+	default:
+		return nil
+	}
+	a, b := trueVal.Args[0], trueVal.Args[1]
+	if a != falseVal && b != falseVal {
+		return nil
+	}
+	cv := b
+	if b == falseVal {
+		cv = a
+	}
+	switch cv.Op {
+	case OpConst8, OpConst16, OpConst32, OpConst64:
+		if isPowerOfTwo(cv.AuxInt) {
+			return cv
+		}
+	}
+	return nil
+}
+
 // phiopt eliminates boolean Phis based on the previous if.
 //
 // Main use case is to transform:
@@ -65,6 +140,44 @@ func phiopt(f *Func) {
 
 			// Look for conversions from bool to 0/1.
 			if v.Type.IsInteger() {
+				if logf := getPow2Log(); logf != nil {
+					trueVal := v.Args[reverse]
+					falseVal := v.Args[1-reverse]
+					if cv := isOrXorPow2(trueVal, falseVal); cv != nil {
+						cond := b0.Controls[0]
+						dep := condDependsOnAccum(cond, falseVal)
+
+						// Count chain length by walking back
+						chainLen := 1
+						fv := falseVal
+						for fv.Op == OpPhi && len(fv.Args) == 2 {
+							found := false
+							for i := 0; i < 2; i++ {
+								if isOrXorPow2(fv.Args[i], fv.Args[1-i]) != nil {
+									chainLen++
+									fv = fv.Args[1-i]
+									found = true
+									break
+								}
+							}
+							if !found {
+								break
+							}
+						}
+
+						var kind string
+						if dep {
+							kind = "dependent"
+						} else if chainLen > 1 {
+							kind = "chain"
+						} else {
+							kind = "single"
+						}
+						pos := f.Config.ctxt.PosTable.Pos(v.Pos)
+						fmt.Fprintf(logf, "%s\tchainlen=%d\t%s:%d\t%v\tconst=%d\tfunc=%s\n",
+							kind, chainLen, pos.Filename(), pos.Line(), trueVal.Op, cv.AuxInt, f.Name)
+					}
+				}
 				phioptint(v, b0, reverse)
 			}
 

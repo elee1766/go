@@ -2820,6 +2820,22 @@ func bool2int(x bool) int {
 	return b
 }
 
+var _pow2CSLog *os.File
+var _pow2CSLogInit bool
+
+func pow2CondSelLogFile() *os.File {
+	if !_pow2CSLogInit {
+		_pow2CSLogInit = true
+		if path := os.Getenv("POW2_CONDSEL_LOG"); path != "" {
+			f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+			if err == nil {
+				_pow2CSLog = f
+			}
+		}
+	}
+	return _pow2CSLog
+}
+
 // rewriteCondSelectIntoMath reports whether x OP (y * constant) should be used instead of a CondSelect.
 // x arbitrary, y in [0,1]
 func rewriteCondSelectIntoMath(config *Config, op Op, constant int64) bool {
@@ -2833,6 +2849,15 @@ func rewriteCondSelectIntoMath(config *Config, op Op, constant int64) bool {
 			switch constant {
 			case 2, 4, 8:
 				// Implemented with LEA a + b * displacement form
+				return true
+			}
+		case OpOr64, OpOr32, OpOr16, OpOr8,
+			OpXor64, OpXor32, OpXor16, OpXor8:
+			// Mul(powerOf2, bool) strength-reduces to SHL
+			if isPowerOfTwo(uint64(constant)) {
+				if f := pow2CondSelLogFile(); f != nil {
+					fmt.Fprintf(f, "CONDSEL_HIT\t%v\tconst=%d\n", op, constant)
+				}
 				return true
 			}
 		}
